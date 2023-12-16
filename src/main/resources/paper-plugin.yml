@@ -1,0 +1,5 @@
+name: Scoreboard-Voter
+version: '1.0'
+main: com.thaumesd.scoreboardvoter.ScoreboardVoter
+description: The scoreboard voter plugin.
+api-version: '1.20'
