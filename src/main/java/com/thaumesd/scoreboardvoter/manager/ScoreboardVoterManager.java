@@ -64,7 +64,7 @@ public class ScoreboardVoterManager {
 
     public void resetVote(){
         isEnabled = true;
-        counter = 30;
+        counter = plugin.getConfig().getInt("vote-session-time", 30);
         votedYes = 0;
         votedNo = 0;
         players.clear();
