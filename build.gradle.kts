@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.thaumesd"
-version = "1.0"
+version = System.getenv("VERSION") ?: "dev"
 
 repositories {
     mavenCentral()
