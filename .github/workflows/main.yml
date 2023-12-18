@@ -3,10 +3,10 @@ name: Build Scoreboard-Voter
 on:
   push:
     branches:
-    - mc/*
+    - main
   pull_request:
     branches:
-    - mc/*
+    - main
 
 jobs:
   build:
