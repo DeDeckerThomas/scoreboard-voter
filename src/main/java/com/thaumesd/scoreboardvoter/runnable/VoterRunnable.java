@@ -22,13 +22,13 @@ public class VoterRunnable implements Consumer<BukkitTask> {
     public void accept(BukkitTask task) {
         scoreboardVoterManager.decrementCounter();
         if (scoreboardVoterManager.getCounter() == 0) {
-            plugin.getServer().broadcast(translate("voteEnded", scoreboardVoterManager.getVotedYes(), scoreboardVoterManager.getVotedNo()));
+            plugin.getServer().broadcast(translate("voteEnded", true, scoreboardVoterManager.getVotedYes(), scoreboardVoterManager.getVotedNo()));
 
             if (scoreboardVoterManager.getVotedYes() > scoreboardVoterManager.getVotedNo()) {
                 scoreboardVoterManager.setSidebar(scoreboardVoterManager.getCurrentObjective());
-                plugin.getServer().broadcast(translate("setScoreboard"));
+                plugin.getServer().broadcast(translate("setScoreboard", true));
             } else {
-                plugin.getServer().broadcast(translate("notSetScoreboard"));
+                plugin.getServer().broadcast(translate("notSetScoreboard", true));
             }
 
             scoreboardVoterManager.resetVote();

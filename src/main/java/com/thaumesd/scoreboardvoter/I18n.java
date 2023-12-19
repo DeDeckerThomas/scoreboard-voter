@@ -23,11 +23,19 @@ public class I18n {
         return MiniMessage.miniMessage().deserialize(message);
     }
 
-    public static Component translate(String key, Object ...objects) {
+    public static Component translate(String key, Boolean addPrefix, Object ...objects) {
         if (instance == null) {
             return Component.newline();
         }
-        return parse(MessageFormat.format(instance.getBundle().getString(key), objects));
+
+        String message = "";
+
+        if(addPrefix){
+            message += instance.getBundle().getString("prefix") + " ";
+        }
+
+        message += instance.getBundle().getString(key);
+        return parse(MessageFormat.format(message, objects));
     }
 
     public void onEnable() {
