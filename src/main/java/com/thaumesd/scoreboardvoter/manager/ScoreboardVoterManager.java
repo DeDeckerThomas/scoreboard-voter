@@ -74,10 +74,6 @@ public class ScoreboardVoterManager {
         return counter;
     }
 
-    public void incrementCounter(){
-        counter++;
-    }
-
     public void decrementCounter() {
         counter--;
     }
@@ -85,7 +81,7 @@ public class ScoreboardVoterManager {
     public void startVote(String currentObjective) {
         isEnabled = false;
         this.currentObjective = currentObjective;
-        plugin.getServer().broadcast(translate("voteStarted", currentObjective));
+        plugin.getServer().broadcast(translate("voteStarted", currentObjective, counter));
         BukkitScheduler scheduler = plugin.getServer().getScheduler();
         scheduler.runTaskTimer(plugin, new VoterRunnable(plugin, this), 0, 20);
     }
