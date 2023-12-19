@@ -69,7 +69,9 @@ public class Commands {
     }
 
     private void version(final CommandContext<CommandSender> context) {
-        context.getSender().sendMessage(translate("pluginInfo"));
+        List<String> authors = plugin.getPluginMeta().getAuthors();
+        String version = plugin.getPluginMeta().getVersion();
+        context.getSender().sendMessage(translate("pluginInfo", String.join(", ", authors), version));
     }
 
     private void resetScoreboard(final CommandContext<CommandSender> context) {

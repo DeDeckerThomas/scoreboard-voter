@@ -19,6 +19,12 @@ dependencies {
     implementation("cloud.commandframework", "cloud-minecraft-extras", "1.8.4")
 }
 
+tasks.processResources {
+    filesMatching("paper-plugin.yml") {
+        expand(project.properties)
+    }
+}
+
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
