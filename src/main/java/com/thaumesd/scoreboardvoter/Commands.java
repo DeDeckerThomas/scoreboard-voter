@@ -16,7 +16,6 @@ import org.bukkit.scoreboard.Objective;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.thaumesd.scoreboardvoter.I18n.translate;
 
@@ -41,40 +40,33 @@ public class Commands {
             throw new RuntimeException(e);
         }
 
-        commandManager.registerExceptionHandler(InvalidSyntaxException.class, (commandSender, e) -> commandSender.sendMessage(translate("invalidSyntax")));
-        commandManager.registerExceptionHandler(NoPermissionException.class, (commandSender, e) -> commandSender.sendMessage(translate("invalidPermission")));
+        commandManager.registerExceptionHandler(InvalidSyntaxException.class, (commandSender, e) -> commandSender.sendMessage(translate("invalidSyntax", true)));
+        commandManager.registerExceptionHandler(NoPermissionException.class, (commandSender, e) -> commandSender.sendMessage(translate("invalidPermission", true)));
 
         commandManager.registerBrigadier();
 
         return commandManager;
     }
 
-    public List<String> getObjectiveNames(CommandContext<CommandSender> commandSenderCommandContext, String s) {
-        return plugin.getScoreboardVoterManager().getObjectives().stream().map(Objective::getName).collect(Collectors.toList());
-    }
-
     public void registerCommands() {
         final Command.Builder<CommandSender> commandBuilder = this.commandManager.commandBuilder("sc", "scoreboardvoter");
+        this.commandManager.command(commandBuilder.literal("help").meta(CommandMeta.DESCRIPTION, "View all scoreboard voter commands.").permission("scoreboardvoter.command.help").handler(this::help));
         this.commandManager.command(commandBuilder.literal("version").meta(CommandMeta.DESCRIPTION, "View the plugin version.").permission("scoreboardvoter.command.version").handler(this::version));
-        this.commandManager.command(commandBuilder.literal("reset").meta(CommandMeta.DESCRIPTION, "Reset the current active scoreboard.").permission("scoreboardvoter.command.reset").handler(this::resetScoreboard));
-        this.commandManager.command(commandBuilder.literal("start").meta(CommandMeta.DESCRIPTION, "Start a vote for a scoreboard.").permission("scoreboardvoter.command.start").argument(StringArgument.<CommandSender>builder("scoreboard").single().withSuggestionsProvider(this::getObjectiveNames)).handler(this::startVote));
+        this.commandManager.command(commandBuilder.literal("reset").meta(CommandMeta.DESCRIPTION, "Reset the current active sidebar scoreboard.").permission("scoreboardvoter.command.reset").handler(this::resetScoreboard));
+        this.commandManager.command(commandBuilder.literal("start").meta(CommandMeta.DESCRIPTION, "Start a vote for an objective.").permission("scoreboardvoter.command.start").argument(StringArgument.<CommandSender>builder("scoreboard").single().withSuggestionsProvider(plugin.getScoreboardVoterManager()::getObjectiveNames)).handler(this::startVote));
         this.commandManager.command(commandBuilder.literal("list").meta(CommandMeta.DESCRIPTION, "List all objectives on the server.").permission("scoreboardvoter.command.list").argument(IntegerArgument.optional("page", 1)).handler(this::listScoreboards));
-        this.commandManager.command(commandBuilder.literal("vote").meta(CommandMeta.DESCRIPTION, "Vote on an objective.").senderType(Player.class).permission("scoreboardvoter.command.list").argument(StringArgument.single("decision")).handler(this::vote));
-        this.commandManager.command(commandBuilder.literal("help").meta(CommandMeta.DESCRIPTION, "View all commands.").handler(context -> {
-            CommandSender sender = context.getSender();
-            sender.sendMessage(translate("listHeader"));
-            minecraftHelpHandler.getAllCommands().forEach(helpEntry -> sender.sendMessage(translate("listCommandItem", helpEntry.getSyntaxString(), helpEntry.getDescription())));
-            sender.sendMessage(translate("listFooter"));
-        }));
+        this.commandManager.command(commandBuilder.literal("vote").meta(CommandMeta.DESCRIPTION, "Vote on an objective.").senderType(Player.class).permission("scoreboardvoter.command.vote").argument(StringArgument.<CommandSender>builder("decision").single().withSuggestionsProvider(plugin.getScoreboardVoterManager()::getDecisions)).handler(this::vote));
     }
 
     private void version(final CommandContext<CommandSender> context) {
-        context.getSender().sendMessage(translate("pluginInfo"));
+        List<String> authors = plugin.getPluginMeta().getAuthors();
+        String version = plugin.getPluginMeta().getVersion();
+        context.getSender().sendMessage(translate("pluginInfo", false, String.join(", ", authors), version));
     }
 
     private void resetScoreboard(final CommandContext<CommandSender> context) {
         plugin.getScoreboardVoterManager().resetCurrentScoreboard();
-        context.getSender().sendMessage(translate("resetScoreboard"));
+        context.getSender().sendMessage(translate("resetScoreboard", true));
     }
 
     private void startVote(final CommandContext<CommandSender> context) {
@@ -82,12 +74,12 @@ public class Commands {
         CommandSender sender = context.getSender();
 
         if (plugin.getScoreboardVoterManager().getObjective(scoreboardName) == null) {
-            sender.sendMessage(translate("unknownScoreboardObjectives"));
+            sender.sendMessage(translate("unknownScoreboardObjectives", true));
             return;
         }
 
         if (!plugin.getScoreboardVoterManager().getIsEnabled()) {
-            sender.sendMessage(translate("voteInProgress"));
+            sender.sendMessage(translate("voteInProgress", true));
             return;
         }
 
@@ -99,7 +91,7 @@ public class Commands {
         CommandSender sender = context.getSender();
 
         if (objectives.isEmpty()) {
-            sender.sendMessage(translate("noObjectives"));
+            sender.sendMessage(translate("noObjectives", true));
             return;
         }
 
@@ -107,7 +99,7 @@ public class Commands {
         int listSize = plugin.getConfig().getInt("list-size", 10);
         int finalPage = (int) Math.ceil(objectives.size() / (double) listSize);
         if (page > finalPage || page <= 0) {
-            sender.sendMessage(translate("pageNotFound"));
+            sender.sendMessage(translate("pageNotFound", true));
             return;
         }
         int index = (page - 1) * listSize;
@@ -115,25 +107,25 @@ public class Commands {
         if (endIndex > objectives.size()) {
             endIndex = objectives.size();
         }
-        sender.sendMessage(translate("listHeader"));
-        sender.sendMessage(translate("listTopContent"));
-        sender.sendMessage(translate("listSeparator"));
+        sender.sendMessage(translate("listHeader", false));
+        sender.sendMessage(translate("listTopContent", false));
+        sender.sendMessage(translate("listSeparator", false));
         for (int i = index; i < endIndex; i++) {
-            sender.sendMessage(translate("listItem", objectives.get(i).getName(), objectives.get(i).getName()));
+            sender.sendMessage(translate("listItem", false, objectives.get(i).getName(), objectives.get(i).getName()));
         }
-        sender.sendMessage(translate("listPageCounter", page, finalPage));
-        sender.sendMessage(translate("listFooter"));
+        sender.sendMessage(translate("listPageCounter",false, page, finalPage));
+        sender.sendMessage(translate("listFooter", false));
     }
 
-    private void vote(CommandContext<CommandSender> ctx) {
-        String decision = ctx.get("decision");
-        final Player player = (Player) ctx.getSender();
+    private void vote(CommandContext<CommandSender> context) {
+        String decision = context.get("decision");
+        final Player player = (Player) context.getSender();
         if (plugin.getScoreboardVoterManager().getIsEnabled()) {
-            player.sendMessage(translate("noVoteInProgress"));
+            player.sendMessage(translate("noVoteInProgress", true));
             return;
         }
         if (plugin.getScoreboardVoterManager().getPlayers().contains(player.getUniqueId())) {
-            player.sendMessage(translate("hasAlreadyVoted"));
+            player.sendMessage(translate("hasAlreadyVoted", true));
             return;
         }
 
@@ -147,8 +139,14 @@ public class Commands {
             return;
         }
 
-        player.sendMessage(translate("voteUsage"));
+        player.sendMessage(translate("voteUsage", true));
     }
 
+    private void help(CommandContext<CommandSender> context) {
+        CommandSender sender = context.getSender();
+        sender.sendMessage(translate("listHeader", false));
+        minecraftHelpHandler.getAllCommands().forEach(helpEntry -> sender.sendMessage(translate("listCommandItem", false, helpEntry.getSyntaxString(), helpEntry.getDescription())));
+        sender.sendMessage(translate("listFooter", false));
+    }
 
 }

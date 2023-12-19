@@ -1,8 +1,10 @@
 package com.thaumesd.scoreboardvoter.manager;
 
+import cloud.commandframework.context.CommandContext;
 import com.thaumesd.scoreboardvoter.ScoreboardVoter;
 import com.thaumesd.scoreboardvoter.runnable.VoterRunnable;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -10,7 +12,10 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.thaumesd.scoreboardvoter.I18n.translate;
 
@@ -74,10 +79,6 @@ public class ScoreboardVoterManager {
         return counter;
     }
 
-    public void incrementCounter(){
-        counter++;
-    }
-
     public void decrementCounter() {
         counter--;
     }
@@ -85,7 +86,7 @@ public class ScoreboardVoterManager {
     public void startVote(String currentObjective) {
         isEnabled = false;
         this.currentObjective = currentObjective;
-        plugin.getServer().broadcast(translate("voteStarted", currentObjective));
+        plugin.getServer().broadcast(translate("voteStarted", true, currentObjective, counter));
         BukkitScheduler scheduler = plugin.getServer().getScheduler();
         scheduler.runTaskTimer(plugin, new VoterRunnable(plugin, this), 0, 20);
     }
@@ -108,11 +109,19 @@ public class ScoreboardVoterManager {
     public void vote(Player player, boolean agree) {
         players.add(player.getUniqueId());
         if (agree) {
-            plugin.getServer().broadcast(translate("playerHasVotedYes", player.getName()));
+            plugin.getServer().broadcast(translate("playerHasVotedYes", true, player.getName()));
             votedYes++;
         } else {
-            plugin.getServer().broadcast(translate("playerHasVotedNo", player.getName()));
+            plugin.getServer().broadcast(translate("playerHasVotedNo", true, player.getName()));
             votedNo++;
         }
+    }
+
+    public List<String> getObjectiveNames(Object ...objects) {
+        return getObjectives().stream().map(Objective::getName).collect(Collectors.toList());
+    }
+
+    public List<String> getDecisions(Object ...objects) {
+        return Arrays.asList("yes", "no");
     }
 }
